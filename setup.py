@@ -4,6 +4,10 @@ setup(
     name='cronitor-airflow',
     version='0.0.1',
     packages=[''],
+    install_requires=[
+        "airflow>=2.0.0",
+        "requests",
+    ],
     url='https://github.com/cronitorio/cronitor-airflow',
     license='MIT',
     author='JJ',
