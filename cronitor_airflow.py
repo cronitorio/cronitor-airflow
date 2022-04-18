@@ -1,4 +1,3 @@
-import typing
 from airflow.providers.http.hooks.http import HttpHook
 from airflow.models import BaseOperator
 from airflow.plugins_manager import AirflowPlugin
@@ -7,9 +6,7 @@ import requests
 from functools import cached_property
 import importlib.metadata
 from typing import Optional, Any, Dict, Literal
-
-if typing.TYPE_CHECKING:
-    from airflow.utils.context import Context
+from airflow.utils.context import Context
 
 
 CronitorState = Literal["run", "complete", "fail", "ok"]
@@ -31,7 +28,7 @@ class CronitorTelemetryAuth(AuthBase):
             api_key = self.login
         else:
             api_key = ''
-        r.url = r.url.replace('<cronitor_api_key>', api_key)
+        r.url = r.url.replace('<cronitor_api_key>', api_key).replace('%3Ccronitor_api_key%3E', api_key)
         return r
 
 
@@ -44,14 +41,38 @@ class CronitorHook(HttpHook):
     default_conn_name = 'cronitor_default'
     conn_type = 'cronitor'
     hook_name = 'Cronitor'
-    base_url = "https://cronitor.link/p/<cronitor_api_key>"
+
+    @property
+    def base_url(self):
+      return "https://cronitor.link/p/<cronitor_api_key>"
+
+    @base_url.setter
+    def base_url(self, a):
+        """Do not allow base_url to be set or overridden"""
+
+    @staticmethod
+    def get_ui_field_behaviour() -> Dict:
+        return {
+            "hidden_fields": [
+                "host", "schema", "login", "port", "extra",
+            ],
+            "relabeling": {
+                "password": "Cronitor API Key",
+            },
+            "placeholders": {
+                "password": "Your Cronitor API Key",
+            }
+        }
 
     def __init__(self, cronitor_conn_id: str = "cronitor_default"):
+        BASE_URL = self.base_url
+        # HttpHook init sets self.base_url as well
         super().__init__(
             http_conn_id=cronitor_conn_id,
-            method="POST",
+            method="GET",
             auth_type=CronitorTelemetryAuth,
         )
+        self.base_url = BASE_URL
 
     @cached_property
     def cronitor_airflow_version(self):
@@ -62,9 +83,15 @@ class CronitorHook(HttpHook):
         headers.update({
             'User-Agent': f'cronitor-airflow/{self.cronitor_airflow_version}',
         })
+        connection = self.get_connection(self.http_conn_id)
         session = super().get_conn(headers=headers)
         session.base_url = self.base_url
+        session.auth = self.auth_type(connection.login, connection.password)
         return session
+
+    # To be implemented at some opint
+    # def test_connection(self):
+    #     pass
 
     def ping(self, monitor_id, state, env=None, series=None):
         data = {
@@ -73,7 +100,10 @@ class CronitorHook(HttpHook):
         if env:
             data['env'] = env
         if series:
-            data['series'] = env
+            data['series'] = series
+
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=52264, stdoutToServer=True, stderrToServer=True)
 
         return self.run(f'/{monitor_id}', data=data)
 
