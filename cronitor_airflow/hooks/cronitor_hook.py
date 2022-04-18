@@ -1,15 +1,10 @@
-from airflow.providers.http.hooks.http import HttpHook
-from airflow.models import BaseOperator
-from airflow.plugins_manager import AirflowPlugin
-from requests.auth import AuthBase
-import requests
-from functools import cached_property
 import importlib.metadata
-from typing import Optional, Any, Dict, Literal
-from airflow.utils.context import Context
+from functools import cached_property
+from typing import Dict, Optional, Any
 
-
-CronitorState = Literal["run", "complete", "fail", "ok"]
+import requests
+from airflow.providers.http.hooks.http import HttpHook
+from requests.auth import AuthBase
 
 
 class CronitorTelemetryAuth(AuthBase):
@@ -102,45 +97,4 @@ class CronitorHook(HttpHook):
         if series:
             data['series'] = series
 
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=52264, stdoutToServer=True, stderrToServer=True)
-
         return self.run(f'/{monitor_id}', data=data)
-
-
-class CronitorOperator(BaseOperator):
-    """
-    This operator allows you to ping Cronitor to inform the monitor of the status of your DAG.
-
-    :param monitor_id: Required. The ID within Cronitor of the monitor you want to ping
-    :param state: Required. The status of the DAG. One of ["run", "complete", "fail", "ok"]
-    :param env: Optional. The environment key in Cronitor
-    :param cronitor_conn_id: The Cronitor connection name in Airflow. Defaults to 'cronitor_default'
-    """
-    def __init__(
-            self,
-            monitor_id: str,
-            state: CronitorState,
-            env: Optional[str] = None,
-            cronitor_conn_id: str = 'cronitor_default',
-            **kwargs,
-    ) -> None:
-        super().__init__(**kwargs)
-        self.monitor_id = monitor_id
-        self.state = state
-        self.env = env
-        self.cronitor_conn_id = cronitor_conn_id
-
-    def execute(self, context: Context) -> None:
-        hook = CronitorHook(cronitor_conn_id=self.cronitor_conn_id)
-        series = context['run_id']
-        self.log.info('Sending ping %s to Cronitor for run_id %s', self.state, series)
-        response: requests.Response = hook.ping(self.monitor_id, self.state, self.env, series)
-        response.raise_for_status()
-
-
-class CronitorPlugin(AirflowPlugin):
-    name = 'cronitor'
-
-    hooks = [CronitorHook]
-    operator = [CronitorOperator]
