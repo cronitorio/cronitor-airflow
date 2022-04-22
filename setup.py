@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='cronitor-airflow',
+    name='apache-airflow-providers-cronitor',
     version='0.0.1',
     packages=['cronitor_airflow',
               'cronitor_airflow.operators',
