@@ -38,12 +38,12 @@ With that, you are ready to use the operator. Using the operator directly is sim
 from cronitor_airflow.operators.cronitor_operator import CronitorOperator
 ```
 
-Please note that when setting the `monitor_id` from the Cronitor monitor you plan to ping, you must use the monitor's _key_, not the name.
+Please note that when setting the `monitor_key` from the Cronitor monitor you plan to ping, you must use the monitor's _key_, not the name.
 
 For a full example of how to use the operator, take a look at this [sample DAG](examples/example_operator_dag.py) provided.
 
 #### Usage Notes
-* When using the operator, `monitor_id` must be the key of your Cronitor monitor. You cannot use the monitor's name.
+* When using the operator, `monitor_key` must be the key of your Cronitor monitor. You cannot use the monitor's name.
 
 ### Autoprovision monitors
 The Cronitor Airflow integration can automatically watch your Airflow instances for active DAGs and create monitors in Cronitor that correspond to those DAGs. This is done via a specialized DAG that we've pre-written for you.

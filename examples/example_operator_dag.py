@@ -11,7 +11,7 @@ with DAG(
         schedule_interval=timedelta(minutes=1),
         catchup=False,
         default_args={
-            'monitor_id': 'pihCIn',
+            'monitor_key': 'pihCIn',
         },
         start_date=datetime(2022, 4, 15)
 ) as dag:
