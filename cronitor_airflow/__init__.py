@@ -1,7 +1,7 @@
 
 def get_provider_info():
     return {
-        "package-name": "cronitor-airflow",
+        "package-name": "apache-airflow-providers-cronitor",
         "name": "Cronitor integration for Airflow",
         "description": 'Airflow plugin for Cronitor, with hook, operator, and auto-discovery',
         "hook-class-names": [
