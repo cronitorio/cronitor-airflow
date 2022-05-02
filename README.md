@@ -61,5 +61,5 @@ dag_2 = autoprovision_monitors(cronitor_conn_id='cronitor_connection_2')
 Airflow will load the DAG on the next DagBag refresh. Make sure you turn on the DAG in the Airflow UI once it is loaded so that it can start running.
 
 #### Usage Notes
-* Currently, autodiscover will only provision and update monitors for DAGs that in the DagBag and turned on. 
+* Currently, autodiscover will only provision and update monitors for DAGs that are in the DagBag and turned on. 
 * Autodiscover does not currently support complex [timetables](https://airflow.apache.org/docs/apache-airflow/stable/concepts/timetable.html). Any timetable that cannot be generalized to a cron schedule will be ignored, and noted as such in the logs.
